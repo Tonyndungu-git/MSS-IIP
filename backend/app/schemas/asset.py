@@ -1,22 +1,38 @@
-from pydantic import BaseModel
+from typing import Optional
 from uuid import UUID
+from pydantic import BaseModel
 
 
 class AssetCreate(BaseModel):
-
-    site_id: UUID
-    asset_type: str
     name: str
-    serial_number: str
+    asset_type: str
     manufacturer: str
+    model: str
+    serial_number: str
+
+    organization_id: UUID
+    site_id: UUID
+
+    gateway_id: Optional[UUID] = None
 
 
-class AssetResponse(AssetCreate):
+
+class AssetResponse(BaseModel):
 
     id: UUID
+
+    name: str
+    asset_type: str
+    manufacturer: str
+    model: str
+    serial_number: str
+
     status: str
-    health_score: int
+
+    organization_id: UUID
+    site_id: UUID
+    gateway_id: Optional[UUID] = None
 
 
     class Config:
-        from_attributes=True
+        from_attributes = True

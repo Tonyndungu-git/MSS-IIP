@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, DateTime
+from sqlalchemy import Column, String, DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from datetime import datetime
 import uuid
@@ -6,9 +6,9 @@ import uuid
 from app.database.connection import Base
 
 
-class Organization(Base):
+class User(Base):
 
-    __tablename__ = "organizations"
+    __tablename__="users"
 
 
     id = Column(
@@ -18,19 +18,21 @@ class Organization(Base):
     )
 
 
-    name = Column(
+    organization_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("organizations.id")
+    )
+
+
+    email = Column(
         String,
-        nullable=False
+        unique=True
     )
 
 
-    industry = Column(
-        String
-    )
-
-
-    country = Column(
-        String
+    role = Column(
+        String,
+        default="VIEWER"
     )
 
 

@@ -1,19 +1,17 @@
-import uuid
-
-from sqlalchemy import Column, String, ForeignKey, Float
+from sqlalchemy import Column
+from sqlalchemy import String
+from sqlalchemy import Float
+from sqlalchemy import ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 
-from app.database.connection import Base
-from app.models.base import TimestampMixin
+import uuid
+
+from app.models.base import Base
 
 
-class Site(
-    Base,
-    TimestampMixin
-):
+class Site(Base):
 
     __tablename__ = "sites"
-
 
     id = Column(
         UUID(as_uuid=True),
@@ -21,29 +19,25 @@ class Site(
         default=uuid.uuid4
     )
 
-
-    organization_id = Column(
-        UUID(as_uuid=True),
-        ForeignKey("organizations.id")
-    )
-
-
     name = Column(
-        String
+        String,
+        nullable=False
     )
-
 
     latitude = Column(
         Float
     )
 
-
     longitude = Column(
         Float
     )
 
+    location = Column(
+        String
+    )
 
-    status = Column(
-        String,
-        default="active"
+    organization_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("organizations.id"),
+        nullable=False
     )

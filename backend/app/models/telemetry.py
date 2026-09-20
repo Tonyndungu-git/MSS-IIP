@@ -1,49 +1,55 @@
-import uuid
-
-from sqlalchemy import Column,String,Float,ForeignKey,DateTime
-
+from sqlalchemy import Column, String, Float, DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
-
-from sqlalchemy.sql import func
+from datetime import datetime
+import uuid
 
 from app.database.connection import Base
 
 
-
 class Telemetry(Base):
 
-    __tablename__="telemetry"
+    __tablename__ = "telemetry"
 
 
-    id=Column(
+    id = Column(
         UUID(as_uuid=True),
         primary_key=True,
         default=uuid.uuid4
     )
 
 
-    asset_code = Column(
+    asset_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("assets.id"),
+        nullable=False
+    )
+
+
+    metric = Column(
         String,
-        index=True
+        nullable=False
     )
 
 
-    metric=Column(
-        String
+    value = Column(
+        Float,
+        nullable=False
     )
 
 
-    value=Column(
-        Float
+    unit = Column(
+        String,
+        nullable=True
     )
 
 
-    unit=Column(
-        String
+    quality = Column(
+        String,
+        default="GOOD"
     )
 
 
-    timestamp=Column(
+    timestamp = Column(
         DateTime,
-        server_default=func.now()
+        default=datetime.utcnow
     )

@@ -1,18 +1,35 @@
-from pydantic import BaseModel
 from uuid import UUID
+
+from pydantic import BaseModel, ConfigDict
 
 
 class SiteCreate(BaseModel):
 
-    organization_id: UUID
     name: str
+
     latitude: float
+
     longitude: float
 
+    location: str
 
-class SiteResponse(SiteCreate):
+    organization_id: UUID
+
+
+class SiteResponse(BaseModel):
 
     id: UUID
 
-    class Config:
-        from_attributes = True
+    name: str
+
+    latitude: float
+
+    longitude: float
+
+    location: str
+
+    organization_id: UUID
+
+    model_config = ConfigDict(
+        from_attributes=True
+    )

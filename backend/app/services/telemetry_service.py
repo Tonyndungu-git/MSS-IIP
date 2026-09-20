@@ -38,9 +38,7 @@ def save_telemetry(data):
     db.commit()
     db.close()
 
-    db.commit()
-
-    db.close()
+    
 
 
 
@@ -82,3 +80,31 @@ def start_listener():
 
 
     client.loop_forever()
+
+def save_telemetry(data):
+
+    db = SessionLocal()
+
+    asset_code = data["asset_id"]
+
+    measurements = [
+        ("power_kw", data["power_kw"], "kW"),
+        ("temperature", data["temperature"], "C"),
+        ("energy_kwh", data["energy_kwh"], "kWh"),
+    ]
+
+    for metric, value, unit in measurements:
+        db.add(
+            Telemetry(
+                asset_code=asset_code,
+                metric=metric,
+                value=value,
+                unit=unit,
+            )
+        )
+
+    db.commit()
+
+    print(f"Saved telemetry for {asset_code}")
+
+    db.close()
