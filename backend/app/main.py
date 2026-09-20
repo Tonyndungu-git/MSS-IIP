@@ -28,7 +28,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
-        "http://127.0.0.1:3000"
+        "http://127.0.0.1:3000",
+        "https://mss-app-ten.vercel.app/"
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -71,4 +72,11 @@ def root():
         "company": "M Synapses Systems",
         "platform": "Intelligent Infrastructure Platform",
         "status": "running"
+    }
+
+@app.get("/health")
+def health():
+    return {
+        "status":"ok",
+        "service":"MSS API"
     }
