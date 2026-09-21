@@ -13,8 +13,6 @@ from app.routes.asset_metrics import router as asset_metrics_router
 from app.routes import health
 
 
-
-
 Base.metadata.create_all(bind=engine)
 
 
@@ -29,13 +27,12 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://127.0.0.1:3000",
-        "https://mss-app-ten.vercel.app/"
+        "https://mss-app-ten.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 app.include_router(
     organizations.router
