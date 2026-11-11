@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends
-
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from uuid import UUID
 
 from app.database import get_db
 
@@ -10,7 +10,6 @@ from app.schemas.organization import (
     OrganizationCreate,
     OrganizationResponse
 )
-
 
 
 router = APIRouter(
@@ -25,10 +24,9 @@ router = APIRouter(
     response_model=OrganizationResponse
 )
 def create_organization(
-    organization:OrganizationCreate,
-    db:Session=Depends(get_db)
+    organization: OrganizationCreate,
+    db: Session = Depends(get_db)
 ):
-
 
     new_org = Organization(
 
@@ -56,9 +54,46 @@ def create_organization(
 
 @router.get("/")
 def get_organizations(
-    db:Session=Depends(get_db)
+    organization_id: str,
+    db: Session = Depends(get_db)
 ):
 
-    return db.query(
-        Organization
-    ).all()
+    try:
+
+        org_uuid = UUID(organization_id)
+
+    except ValueError:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid organization ID"
+        )
+
+
+
+    organization = (
+
+        db.query(Organization)
+
+        .filter(
+            Organization.id == org_uuid
+        )
+
+        .first()
+
+    )
+
+
+
+    if not organization:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Organization not found"
+        )
+
+
+
+    return [
+        organization
+    ]

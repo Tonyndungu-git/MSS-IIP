@@ -2,6 +2,8 @@ from uuid import uuid4
 from sqlalchemy import Column, String, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from app.models.base import Base
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import relationship
 
 
 class Asset(Base):
@@ -42,6 +44,10 @@ class Asset(Base):
         unique=True
     )
 
+    properties = Column(
+        JSONB,
+        default={}
+    )
 
     organization_id = Column(
         UUID,
@@ -66,4 +72,37 @@ class Asset(Base):
     status = Column(
         String,
         default="REGISTERED"
+    )
+
+    vehicle = relationship(
+        "Vehicle",
+        back_populates="asset",
+        uselist=False
+    )
+
+
+    charger = relationship(
+        "Charger",
+        back_populates="asset",
+        uselist=False
+    )
+
+    telemetry_events = relationship(
+        "TelemetryEvent",
+        back_populates="asset",
+        cascade="all, delete-orphan"
+    )
+
+    asset_metrics = relationship(
+        "AssetMetric",
+        back_populates="asset",
+        cascade="all, delete-orphan"
+    )
+
+
+
+    metric_values = relationship(
+        "AssetMetricValue",
+        back_populates="asset",
+        cascade="all, delete-orphan"
     )

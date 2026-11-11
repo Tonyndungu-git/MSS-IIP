@@ -1,80 +1,27 @@
-import type { Metadata } from "next";
-
-import { Geist, Geist_Mono } from "next/font/google";
-
-import "./globals.css";
-
-import { AuthProvider } from "@/components/auth/AuthProvider";
-import ApiWarmupProvider from "@/components/providers/ApiWarmupProvider";
-
-
-const geistSans = Geist({
-
-    variable:"--font-geist-sans",
-
-    subsets:["latin"],
-
-});
-
-
-const geistMono = Geist_Mono({
-
-    variable:"--font-geist-mono",
-
-    subsets:["latin"],
-
-});
-
-
+import type {Metadata} from 'next';
+import './globals.css'; // Global styles
 
 export const metadata: Metadata = {
-
-    title:"M Synapses Systems | Intelligent Infrastructure Platform",
-
-    description:
-    "MSS-IIP connects physical infrastructure, real-time data and artificial intelligence into one intelligent operating platform.",
-
+  title: 'MSS Intelligent Infrastructure Platform | M Synapses Systems',
+  description: 'Industrial asset intelligence platform connecting physical infrastructure, telemetry data, and AI-driven operational decisions.',
+  openGraph: {
+    title: 'MSS Intelligent Infrastructure Platform | M Synapses Systems',
+    description: 'Industrial asset intelligence platform connecting physical infrastructure, telemetry data, and AI-driven operational decisions.',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'MSS Intelligent Infrastructure Platform | M Synapses Systems',
+    description: 'Industrial asset intelligence platform connecting physical infrastructure, telemetry data, and AI-driven operational decisions.',
+  },
 };
 
-
-
-export default function RootLayout({
-
-children
-
-}: Readonly<{
-
-children:React.ReactNode;
-
-}>) {
-
-
-return (
-
-<html
-
-lang="en"
-
-className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-
->
-
-
-<body className="min-h-full flex flex-col">
-
-<ApiWarmupProvider />
-
-<AuthProvider>
-
-{children}
-
-</AuthProvider>
-
-</body>
-
-
-</html>
-
-);
-
+export default function RootLayout({children}: {children: React.ReactNode}) {
+  return (
+    <html lang="en" className="dark">
+      <body className="bg-[#020617] text-slate-100 antialiased font-sans min-h-screen selection:bg-cyan-500/30 selection:text-cyan-200" suppressHydrationWarning>
+        {children}
+      </body>
+    </html>
+  );
 }

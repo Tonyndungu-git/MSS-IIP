@@ -4,9 +4,11 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 
 from app.models.asset import Asset
-from app.models.telemetry import Telemetry
+from app.models.telemetry_event import TelemetryEvent
 
 from app.schemas.asset import AssetCreate, AssetResponse
+
+from app.auth.organization import current_organization
 
 
 router = APIRouter(
@@ -16,21 +18,38 @@ router = APIRouter(
 
 
 
+# =====================================================
+# CREATE ASSET
+# Organization comes from authenticated user
+# =====================================================
+
 @router.post("/", response_model=AssetResponse)
 def create_asset(
     asset: AssetCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    organization_id = Depends(current_organization)
 ):
 
     db_asset = Asset(
 
         name=asset.name,
+
         asset_type=asset.asset_type,
+
         manufacturer=asset.manufacturer,
+
         model=asset.model,
+
         serial_number=asset.serial_number,
-        organization_id=asset.organization_id,
+
+
+        # SECURITY:
+        # Never trust frontend organization_id
+        organization_id=organization_id,
+
+
         site_id=asset.site_id,
+
         gateway_id=asset.gateway_id
 
     )
@@ -49,66 +68,95 @@ def create_asset(
 
 
 
+# =====================================================
+# GET ALL ASSETS FOR CURRENT TENANT
+# =====================================================
+
 @router.get("/")
 def get_assets(
-    db: Session = Depends(get_db)
+
+    db: Session = Depends(get_db),
+
+    organization_id = Depends(current_organization)
+
 ):
 
-    assets = db.query(Asset).all()
+
+    assets = (
+
+        db.query(Asset)
+
+        .filter(
+            Asset.organization_id == organization_id
+        )
+
+        .all()
+
+    )
 
 
-    result=[]
+    result = []
+
 
 
     for asset in assets:
 
 
         telemetry_rows = (
-            db.query(Telemetry)
+
+            db.query(TelemetryEvent)
+
             .filter(
-                Telemetry.asset_id == asset.id
+                TelemetryEvent.asset_id == asset.id
             )
+
             .order_by(
-                Telemetry.timestamp.desc()
+                TelemetryEvent.timestamp.desc()
             )
+
             .limit(50)
+
             .all()
+
         )
 
 
-        telemetry={}
+
+        telemetry = {}
+
 
 
         for row in telemetry_rows:
 
-            if row.metric not in telemetry:
+            if row.payload:
 
-                telemetry[row.metric]=row.value
+                telemetry.update(row.payload)
+
 
 
 
         result.append({
 
-            "id":str(asset.id),
+            "id": str(asset.id),
 
-            "name":asset.name,
+            "name": asset.name,
 
-            "asset_type":asset.asset_type,
+            "asset_type": asset.asset_type,
 
-            "manufacturer":asset.manufacturer,
+            "manufacturer": asset.manufacturer,
 
-            "model":asset.model,
+            "model": asset.model,
 
-            "serial_number":asset.serial_number,
+            "serial_number": asset.serial_number,
 
-            "status":asset.status,
-
-
-            "telemetry":telemetry,
+            "status": asset.status,
 
 
-            "health_score":95
+            "telemetry": telemetry,
 
+
+            # Temporary until intelligence engine exists
+            "health_score": 95
 
         })
 
@@ -120,46 +168,69 @@ def get_assets(
 
 
 
-
+# =====================================================
+# GET SINGLE ASSET
+# Tenant protected
+# =====================================================
 
 @router.get("/{asset_id}")
 def get_asset(
 
-    asset_id:str,
+    asset_id: str,
 
-    db:Session=Depends(get_db)
+    db: Session = Depends(get_db),
+
+    organization_id = Depends(current_organization)
 
 ):
 
 
     asset = (
+
         db.query(Asset)
+
         .filter(
-            Asset.id==asset_id
+
+            Asset.id == asset_id,
+
+            Asset.organization_id == organization_id
+
         )
+
         .first()
+
     )
+
 
 
     if not asset:
 
+
         raise HTTPException(
+
             status_code=404,
+
             detail="Asset not found"
+
         )
 
 
 
-    rows=(
 
-        db.query(Telemetry)
+    rows = (
+
+        db.query(TelemetryEvent)
 
         .filter(
-            Telemetry.asset_id==asset.id
+
+            TelemetryEvent.asset_id == asset.id
+
         )
 
         .order_by(
-            Telemetry.timestamp.desc()
+
+            TelemetryEvent.timestamp.desc()
+
         )
 
         .limit(50)
@@ -169,38 +240,42 @@ def get_asset(
     )
 
 
-    telemetry={}
+
+    telemetry = {}
+
 
 
     for row in rows:
 
-        if row.metric not in telemetry:
 
-            telemetry[row.metric]=row.value
+        if row.payload:
+
+            telemetry.update(row.payload)
+
 
 
 
     return {
 
 
-        "id":str(asset.id),
+        "id": str(asset.id),
 
-        "name":asset.name,
+        "name": asset.name,
 
-        "asset_type":asset.asset_type,
+        "asset_type": asset.asset_type,
 
-        "manufacturer":asset.manufacturer,
+        "manufacturer": asset.manufacturer,
 
-        "model":asset.model,
+        "model": asset.model,
 
-        "serial_number":asset.serial_number,
+        "serial_number": asset.serial_number,
 
-        "status":asset.status,
-
-
-        "telemetry":telemetry,
+        "status": asset.status,
 
 
-        "health_score":95
+        "telemetry": telemetry,
+
+
+        "health_score": 95
 
     }

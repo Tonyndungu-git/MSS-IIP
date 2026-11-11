@@ -1,0 +1,6 @@
+{
+  "name": "MSS Intelligent Infrastructure Platform",
+  "description": "Industrial asset intelligence platform connecting physical infrastructure, telemetry data, and AI-driven operational decisions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
