@@ -1,5 +1,4 @@
-import { supabase } from "@/lib/supabase";
-import { getStoredUser } from "@/lib/supabase";
+import { supabase, getStoredUser } from "@/lib/supabase";
 
 import {
   Asset,
@@ -43,12 +42,14 @@ export function getApiBaseUrl(): string {
         "mss_api_url_override"
       );
 
+
     if (
       override &&
       override.trim()
     ) {
       return override.trim();
     }
+
   }
 
 
@@ -61,9 +62,11 @@ export function getApiBaseUrl(): string {
 
 
 
+
 export function setApiBaseUrlOverride(
   url: string | null
 ): void {
+
 
   if (
     typeof window === "undefined"
@@ -72,17 +75,21 @@ export function setApiBaseUrlOverride(
   }
 
 
+
   if (
     !url ||
     url.trim() === "" ||
     url.trim() === DEFAULT_API_URL
   ) {
 
+
     localStorage.removeItem(
       "mss_api_url_override"
     );
 
+
   } else {
+
 
     localStorage.setItem(
       "mss_api_url_override",
@@ -92,6 +99,7 @@ export function setApiBaseUrlOverride(
   }
 
 }
+
 
 
 
@@ -122,13 +130,16 @@ async function apiFetch<T>(
     getApiBaseUrl();
 
 
+
   const url =
     `${baseUrl.replace(/\/+$/, "")}/${endpoint.replace(/^\/+/, "")}`;
 
 
 
+
   const controller =
     new AbortController();
+
 
 
   const timeoutId =
@@ -139,12 +150,23 @@ async function apiFetch<T>(
 
 
 
-  const {
-    data:{
-      session
-    }
-  } =
-    await supabase.auth.getSession();
+  let accessToken: string | undefined;
+
+
+
+  if (supabase) {
+
+    const {
+      data
+    } =
+      await supabase.auth.getSession();
+
+
+    accessToken =
+      data.session?.access_token;
+
+  }
+
 
 
 
@@ -158,11 +180,12 @@ async function apiFetch<T>(
 
           ...options,
 
+
           signal:
             controller.signal,
 
 
-          headers:{
+          headers: {
 
 
             Accept:
@@ -174,11 +197,11 @@ async function apiFetch<T>(
 
 
 
-            ...(session?.access_token
+            ...(accessToken
               ? {
 
                 Authorization:
-                  `Bearer ${session.access_token}`
+                  `Bearer ${accessToken}`
 
               }
               : {}),
@@ -190,6 +213,7 @@ async function apiFetch<T>(
           }
 
         }
+
       );
 
 
@@ -198,7 +222,8 @@ async function apiFetch<T>(
 
 
 
-    if(!response.ok){
+
+    if (!response.ok) {
 
 
       const errorText =
@@ -209,13 +234,12 @@ async function apiFetch<T>(
           );
 
 
-      throw new Error(
 
+      throw new Error(
         `API error [${response.status}]: ${
           errorText ||
           response.statusText
         }`
-
       );
 
     }
@@ -226,17 +250,19 @@ async function apiFetch<T>(
 
 
 
-  } catch(error:any){
+  }
+
+  catch(error:any) {
 
 
     clearTimeout(timeoutId);
 
 
 
-    if(
+    if (
       error.name ===
       "AbortError"
-    ){
+    ) {
 
       throw new Error(
         "API request timeout. Backend unavailable."
@@ -248,8 +274,8 @@ async function apiFetch<T>(
 
     throw error;
 
-
   }
+
 
 }
 
@@ -259,78 +285,104 @@ async function apiFetch<T>(
 
 export const api = {
 
-async getOrganizationUsers(
-organization_id:string
-){
 
-return apiFetch<any[]>(
-`users/${organization_id}`
-);
-
-},
+  async getOrganizationUsers(
+    organization_id:string
+  ) {
 
 
+    return apiFetch<any[]>(
+      `users/${organization_id}`
+    );
 
-async removeUser(
-input:{
-user_id:string;
-organization_id:string;
-}
-){
+  },
 
-return apiFetch(
-"users/remove",
-{
-method:"DELETE",
-body:JSON.stringify(input)
-}
-);
 
-},
 
-  
-async getUserContext(
-  userId: string
-) {
-
-  return apiFetch<{
-    user_id: string;
-    organization_id: string;
-    organization_name: string;
-    role: string;
-  }>(
-    `auth/me?user_id=${encodeURIComponent(userId)}`
-  );
-
-},
-    
-    async registerTenant(
-    input: {
-      user_id: string;
-      email: string;
-      full_name: string;
-      organization_name: string;
-      industry: string;
-      country: string;
+  async removeUser(
+    input:{
+      user_id:string;
+      organization_id:string;
     }
   ) {
 
+
     return apiFetch(
-      "auth/register-tenant",
+      "users/remove",
       {
-        method: "POST",
-        body: JSON.stringify(input),
+
+        method:"DELETE",
+
+        body:
+          JSON.stringify(input)
+
       }
     );
 
   },
 
+
+
+  async getUserContext(
+    userId:string
+  ) {
+
+
+    return apiFetch<{
+
+      user_id:string;
+
+      organization_id:string;
+
+      organization_name:string;
+
+      role:string;
+
+
+    }>(
+      `auth/me?user_id=${encodeURIComponent(userId)}`
+    );
+
+
+  },
+
+
+
+  async registerTenant(
+    input:{
+      user_id:string;
+      email:string;
+      full_name:string;
+      organization_name:string;
+      industry:string;
+      country:string;
+    }
+  ) {
+
+
+    return apiFetch(
+      "auth/register-tenant",
+      {
+
+        method:"POST",
+
+        body:
+          JSON.stringify(input)
+
+      }
+    );
+
+  },
+
+
+
   async getHealth():
-    Promise<HealthResponse>{
+    Promise<HealthResponse> {
 
 
     const start =
       performance.now();
+
 
 
     try {
@@ -338,8 +390,11 @@ async getUserContext(
 
       const data =
         await apiFetch<{
+
           status?:string;
+
           service?:string;
+
         }>(
           "health"
         );
@@ -347,6 +402,7 @@ async getUserContext(
 
 
       return {
+
 
         status:
           data.status ||
@@ -368,21 +424,23 @@ async getUserContext(
             performance.now()-start
           )
 
+
       };
 
 
+    }
 
-    }catch{
+
+    catch {
 
 
       return {
 
-        status:
-          "offline",
+
+        status:"offline",
 
 
-        service:
-          "MSS API",
+        service:"MSS API",
 
 
         timestamp:
@@ -395,6 +453,7 @@ async getUserContext(
             performance.now()-start
           )
 
+
       };
 
 
@@ -402,12 +461,7 @@ async getUserContext(
 
 
   },
-
-
-
-
-
-  async getAssets():
+    async getAssets():
     Promise<Asset[]> {
 
 
@@ -421,7 +475,9 @@ async getUserContext(
       ? data
       : [];
 
+
   },
+
 
 
 
@@ -429,14 +485,16 @@ async getUserContext(
   async getAssetById(
     assetId:string
   ):
-    Promise<Asset>{
+    Promise<Asset> {
 
 
     return apiFetch<Asset>(
       `assets/${assetId}`
     );
 
+
   },
+
 
 
 
@@ -444,7 +502,7 @@ async getUserContext(
   async createAsset(
     input:CreateAssetInput
   ):
-    Promise<Asset>{
+    Promise<Asset> {
 
 
     return apiFetch<Asset>(
@@ -459,6 +517,7 @@ async getUserContext(
       }
     );
 
+
   },
 
 
@@ -468,14 +527,13 @@ async getUserContext(
   async getLatestTelemetry(
     assetId:string
   ):
-    Promise<TelemetryLatestResponse>{
+    Promise<TelemetryLatestResponse> {
 
 
     return apiFetch<TelemetryLatestResponse>(
-
       `telemetry/latest/${assetId}`
-
     );
+
 
   },
 
@@ -483,43 +541,59 @@ async getUserContext(
 
 
 
+
+
   async getOrganizations(
-  organization_id?: string
-):
-Promise<Organization[]> {
+    organization_id?:string
+  ):
+    Promise<Organization[]> {
 
 
-  const user =
-    getStoredUser();
+    const user =
+      getStoredUser();
 
 
-  const orgId =
-    organization_id ||
-    user?.organization_id;
+
+    const orgId =
+      organization_id ||
+      user?.organization_id;
 
 
-  if(!orgId){
-
-    console.warn(
-      "No organization_id available"
-    );
-
-    return [];
-
-  }
 
 
-  const data =
-    await apiFetch<Organization[]>(
-      `organizations/?organization_id=${orgId}`
-    );
+    if(!orgId){
 
 
-  return Array.isArray(data)
-    ? data
-    : [];
+      console.warn(
+        "No organization_id available"
+      );
 
-},
+
+      return [];
+
+
+    }
+
+
+
+
+    const data =
+      await apiFetch<Organization[]>(
+        `organizations/?organization_id=${orgId}`
+      );
+
+
+
+    return Array.isArray(data)
+      ? data
+      : [];
+
+
+
+  },
+
+
+
 
 
 
@@ -527,7 +601,7 @@ Promise<Organization[]> {
   async createOrganization(
     input:CreateOrgInput
   ):
-    Promise<Organization>{
+    Promise<Organization> {
 
 
     return apiFetch<Organization>(
@@ -549,6 +623,8 @@ Promise<Organization[]> {
 
 
 
+
+
   async getSites():
     Promise<Site[]> {
 
@@ -559,11 +635,16 @@ Promise<Organization[]> {
       );
 
 
+
     return Array.isArray(data)
       ? data
       : [];
 
+
+
   },
+
+
 
 
 
@@ -572,7 +653,7 @@ Promise<Organization[]> {
   async createSite(
     input:CreateSiteInput
   ):
-    Promise<Site>{
+    Promise<Site> {
 
 
     return apiFetch<Site>(
@@ -595,6 +676,7 @@ Promise<Organization[]> {
 
 
 
+
   async getGateways():
     Promise<Gateway[]> {
 
@@ -605,9 +687,11 @@ Promise<Organization[]> {
       );
 
 
+
     return Array.isArray(data)
       ? data
       : [];
+
 
 
   },
@@ -617,10 +701,11 @@ Promise<Organization[]> {
 
 
 
+
   async createGateway(
     input:CreateGatewayInput
   ):
-    Promise<Gateway>{
+    Promise<Gateway> {
 
 
     return apiFetch<Gateway>(
@@ -635,6 +720,7 @@ Promise<Organization[]> {
       }
     );
 
+
   },
 
 
@@ -645,7 +731,7 @@ Promise<Organization[]> {
 
   async setupAssetMetrics(
     input:AssetMetricSetupInput
-  ){
+  ) {
 
 
     return apiFetch(
