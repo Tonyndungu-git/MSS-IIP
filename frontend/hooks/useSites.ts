@@ -14,20 +14,29 @@ export function useSites() {
   const [loading, setLoading] = useState(true);
 
 
+
   async function loadSites() {
 
     try {
 
+      setLoading(true);
+
       const data = await api.getSites();
 
-      setSites(data);
+      setSites(
+        Array.isArray(data)
+          ? data
+          : []
+      );
 
-    } catch (error) {
+
+    } catch(error) {
 
       console.error(
         "Failed loading sites",
         error
       );
+
 
     } finally {
 
@@ -38,43 +47,32 @@ export function useSites() {
   }
 
 
-  async function createSite(siteData: CreateSiteInput) {
 
-    try {
+  async function createSite(
+    siteData: CreateSiteInput
+  ) {
 
-      const newSite = await api.createSite(siteData);
-
-
-      setSites((currentSites) => [
-        ...currentSites,
-        newSite
-      ]);
+    const newSite =
+      await api.createSite(siteData);
 
 
-      return newSite;
+    setSites(current => [
+      ...current,
+      newSite
+    ]);
 
 
-    } catch (error) {
-
-      console.error(
-        "Failed creating site",
-        error
-      );
-
-
-      throw error;
-
-    }
+    return newSite;
 
   }
 
 
 
-  useEffect(() => {
+  useEffect(()=>{
 
     loadSites();
 
-  }, []);
+  },[]);
 
 
 
@@ -83,6 +81,8 @@ export function useSites() {
     sites,
 
     loading,
+
+    loadSites,
 
     createSite
 

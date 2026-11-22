@@ -91,12 +91,14 @@ export default function LoginPage() {
 
 
       if(!data.user || !data.session){
+        
 
         throw new Error(
           "Authentication session failed"
         );
 
       }
+
 
 
 
@@ -111,9 +113,7 @@ export default function LoginPage() {
       try {
 
         context =
-          await api.getUserContext(
-            data.user.id
-          );
+          await api.getUserContext();
 
       }
       catch(err){

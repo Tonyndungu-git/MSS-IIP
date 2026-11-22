@@ -323,28 +323,25 @@ export const api = {
 
 
 
-  async getUserContext(
-    userId:string
-  ) {
-
+  async getUserContext()
+{
 
     return apiFetch<{
 
-      user_id:string;
+        user_id:string;
 
-      organization_id:string;
+        organization_id:string;
 
-      organization_name:string;
+        organization_name:string;
 
-      role:string;
+        role:string;
 
 
     }>(
-      `auth/me?user_id=${encodeURIComponent(userId)}`
+        "auth/me"
     );
 
-
-  },
+},
 
 
 

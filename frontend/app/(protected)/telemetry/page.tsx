@@ -22,6 +22,8 @@ import {
   CheckCircle2,
   AlertCircle
 } from 'lucide-react';
+import { useEffect } from "react";
+
 
 export default function TelemetryPage() {
   const { assets, loading: assetsLoading } = useAssets();
@@ -29,23 +31,40 @@ export default function TelemetryPage() {
   const [pollInterval, setPollInterval] = useState<number>(5000);
   const [isPolling, setIsPolling] = useState<boolean>(true);
 
-  const assetId = assets.length > 0 ? assets[0].id : null;
+  const activeAsset =
+  assets.find((a) => a.id === selectedAssetId) ||
+  assets[0] ||
+  null;
 
-  const {
-    telemetry,
-    loading: telemetryLoading,
-    error: telemetryError,
-    lastUpdated,
-    refetch,
-  } = useTelemetry(
-    assetId,
-    isPolling,
-    pollInterval
-  );
+const {
+  telemetry,
+  loading: telemetryLoading,
+  error: telemetryError,
+  lastUpdated,
+  refetch,
+} = useTelemetry(
+  activeAsset?.id ?? null,
+  isPolling,
+  pollInterval
+);
 
-  const activeAsset = assets.find((a) => a.id === selectedAssetId) || assets[0];
-  const telemetryRecords = telemetry?.telemetry || [];
-  const hasTelemetry = telemetryRecords.length > 0;
+useEffect(() => {
+  if (!selectedAssetId && assets.length > 0) {
+    setSelectedAssetId(assets[0].id);
+  }
+}, [assets, selectedAssetId]);
+
+useEffect(() => {
+  if (activeAsset) {
+    refetch();
+  }
+}, [activeAsset?.id]);
+
+
+const telemetryRecords = telemetry?.telemetry ?? [];
+
+const hasTelemetry = telemetryRecords.length > 0;
+
 
   return (
     <AppShell>

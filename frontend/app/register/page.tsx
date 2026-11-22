@@ -102,23 +102,29 @@ export default function RegisterPage() {
         2. Create MSS Tenant
       */
 
-      await api.registerTenant({
+      const tenant = await api.registerTenant({
 
-        user_id:data.user.id,
+          user_id:data.user.id,
 
-        email,
+          email,
 
-        full_name:
-          email.split("@")[0],
+          full_name:
+              email.split("@")[0],
 
-        organization_name:
-          orgName,
+          organization_name:
+              orgName,
 
-        industry,
+          industry,
 
-        country
+          country
 
       });
+
+
+    console.log(
+        "Tenant created:",
+        tenant
+    );
 
 
 

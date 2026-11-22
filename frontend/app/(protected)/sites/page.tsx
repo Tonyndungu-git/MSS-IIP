@@ -21,30 +21,45 @@ export default function SitesPage() {
   const [error, setError] = useState<string | null>(null);
 
   const handleCreateSite = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setCreating(true);
-    setError(null);
-    try {
-      const targetOrg = orgId || organizations[0]?.id;
-      if (!targetOrg) {
-        throw new Error('Please select or create an organization first.');
-      }
-      await createSite({
-        name,
-        location,
-        latitude: parseFloat(latitude),
-        longitude: parseFloat(longitude),
-        organization_id: targetOrg,
-      });
-      setIsModalOpen(false);
-      setName('');
-      setLocation('');
-    } catch (err: any) {
-      setError(err?.message || 'Failed to create physical site');
-    } finally {
-      setCreating(false);
+  e.preventDefault();
+
+  setCreating(true);
+  setError(null);
+
+  try {
+
+    if (!orgId) {
+      throw new Error("Please select a parent organization.");
     }
-  };
+
+    await createSite({
+      name,
+      location,
+      latitude: Number(latitude),
+      longitude: Number(longitude),
+      organization_id: orgId,
+    });
+
+    setIsModalOpen(false);
+
+    setName('');
+    setLocation('');
+    setLatitude('-1.286389');
+    setLongitude('36.817223');
+    setOrgId('');
+
+  } catch(err:any){
+
+    setError(
+      err?.message || "Failed to create physical site"
+    );
+
+  } finally {
+
+    setCreating(false);
+
+  }
+};
 
   return (
     <AppShell>

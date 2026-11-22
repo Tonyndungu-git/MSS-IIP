@@ -1,9 +1,6 @@
 'use client';
 
-import React, {
-  useEffect,
-  useState
-} from 'react';
+import React, { useEffect, useState } from 'react';
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -16,18 +13,19 @@ import {
   ShieldCheck,
   LogOut,
   AlertTriangle,
-  CheckCircle2
+  CheckCircle2,
+  RadioTower
 } from 'lucide-react';
 
+
+import { AppShell } from '@/components/layout/AppShell';
 
 import { useOrganizations } from '@/hooks/useOrganizations';
 import { useAssets } from '@/hooks/useAssets';
 import { useHealth } from '@/hooks/useHealth';
 import { useSites } from '@/hooks/useSites';
 
-
 import { CreateAssetModal } from '@/components/assets/CreateAssetModal';
-
 
 import {
   getStoredUser,
@@ -43,77 +41,33 @@ export const Navbar: React.FC = () => {
   const router = useRouter();
 
 
+  const { organizations } = useOrganizations();
 
-  const {
-    organizations
-  } = useOrganizations();
+  const { assets } = useAssets();
 
+  const { sites } = useSites();
 
-
-  const {
-    assets
-  } = useAssets();
+  const { health } = useHealth(15000);
 
 
 
-  const {
-    health
-  } = useHealth(15000);
+  const [selectedOrg,setSelectedOrg] = useState("");
 
+  const [isModalOpen,setIsModalOpen] = useState(false);
 
+  const [user,setUser] = useState<MSSUser | null>(null);
 
-  const {
-    sites
-  } = useSites();
+  const [showUserMenu,setShowUserMenu] = useState(false);
 
-
-
-
-  const [
-    selectedOrg,
-    setSelectedOrg
-  ] = useState("");
-
-
-
-  const [
-    isModalOpen,
-    setIsModalOpen
-  ] = useState(false);
-
-
-
-  const [
-    user,
-    setUser
-  ] = useState<MSSUser | null>(null);
-
-
-
-  const [
-    showUserMenu,
-    setShowUserMenu
-  ] = useState(false);
-
-
-
-  const [
-    showAlertsDropdown,
-    setShowAlertsDropdown
-  ] = useState(false);
-
-
+  const [showAlertsDropdown,setShowAlertsDropdown] = useState(false);
 
 
 
   useEffect(()=>{
 
-    const stored =
-      getStoredUser();
-
+    const stored = getStoredUser();
 
     setUser(stored);
-
 
   },[]);
 
@@ -121,9 +75,7 @@ export const Navbar: React.FC = () => {
 
 
 
-
   useEffect(()=>{
-
 
     if(
       organizations.length > 0 &&
@@ -136,7 +88,6 @@ export const Navbar: React.FC = () => {
 
     }
 
-
   },[
     organizations,
     selectedOrg
@@ -146,36 +97,29 @@ export const Navbar: React.FC = () => {
 
 
 
-
   const tenantSites =
     sites.filter(
       site =>
-        site.organization_id === selectedOrg
+      site.organization_id === selectedOrg
     );
 
 
 
 
+  /**
+   * MSS MVP ALERT ENGINE
+   * 
+   * Later this becomes AI health scoring.
+   * For now use actual asset status.
+   */
 
-
-  const degradedAssets =
+  const alertAssets =
     assets.filter(
       asset =>
-
-        (
-          asset.health_score !== undefined &&
-          asset.health_score < 85
-        )
-
-        ||
-
-        asset.status === "WARNING"
-
-        ||
-
-        asset.status === "CRITICAL"
+        asset.status === "WARNING" ||
+        asset.status === "CRITICAL" ||
+        asset.status === "OFFLINE"
     );
-
 
 
 
@@ -184,12 +128,9 @@ export const Navbar: React.FC = () => {
 
   const handleLogout = ()=>{
 
-
     setStoredUser(null);
 
-
-    router.push("/login");
-
+    router.push("/");
 
   };
 
@@ -197,12 +138,7 @@ export const Navbar: React.FC = () => {
 
 
 
-
-
 return (
-
-<>
-
 
 <header
 className="
@@ -223,6 +159,7 @@ z-20
 >
 
 
+
 <div className="flex items-center gap-4">
 
 
@@ -234,7 +171,6 @@ items-center
 gap-2
 font-mono
 text-xs
-text-slate-400
 "
 >
 
@@ -253,12 +189,12 @@ text-cyan-400
 className="
 hidden
 sm:inline
-uppercase
 text-[10px]
+uppercase
 text-slate-500
 "
 >
-Tenant:
+Tenant
 </span>
 
 
@@ -269,33 +205,26 @@ Tenant:
 value={selectedOrg}
 
 onChange={
-e =>
-setSelectedOrg(
-e.target.value
-)
+e=>setSelectedOrg(e.target.value)
 }
 
 className="
 bg-slate-900
-text-slate-200
 border
 border-slate-800
 rounded
 px-2.5
 py-1
 text-xs
+text-slate-200
 font-mono
-font-semibold
-max-w-[240px]
 "
 
 >
 
 
 {
-organizations.length === 0
-
-?
+organizations.length === 0 ?
 
 <option>
 No organizations
@@ -324,8 +253,9 @@ value={org.id}
 </select>
 
 
-
 </div>
+
+
 
 
 
@@ -337,9 +267,9 @@ hidden
 lg:flex
 items-center
 gap-2
-pl-3
 border-l
 border-slate-800
+pl-3
 text-[11px]
 font-mono
 "
@@ -353,7 +283,7 @@ h-2
 rounded-full
 
 ${
-health?.status==="ok"
+health?.status === "ok"
 ?
 "bg-emerald-400"
 :
@@ -367,7 +297,7 @@ health?.status==="ok"
 
 <span
 className={
-health?.status==="ok"
+health?.status === "ok"
 ?
 "text-emerald-400"
 :
@@ -378,9 +308,9 @@ health?.status==="ok"
 {
 health?.status==="ok"
 ?
-"API NOMINAL"
+"API ONLINE"
 :
-"CONNECTING"
+"API CHECK"
 }
 
 </span>
@@ -390,6 +320,7 @@ health?.status==="ok"
 
 
 
+
 </div>
 
 
@@ -399,23 +330,17 @@ health?.status==="ok"
 
 
 
+<div className="flex items-center gap-3">
 
-<div className="
-flex
-items-center
-gap-3
-">
+
+
 
 
 <button
 
-onClick={
-()=>setIsModalOpen(true)
-}
+onClick={()=>setIsModalOpen(true)}
 
-disabled={
-tenantSites.length===0
-}
+disabled={tenantSites.length===0}
 
 className="
 flex
@@ -430,18 +355,21 @@ border-cyan-500/30
 text-cyan-300
 text-xs
 font-mono
-disabled:opacity-50
+disabled:opacity-40
 "
 
 >
 
-
-<Plus className="w-3.5 h-3.5"/>
+<Plus
+className="w-3.5 h-3.5"
+/>
 
 Register Asset
 
-
 </button>
+
+
+
 
 
 
@@ -453,8 +381,8 @@ Register Asset
 
 <button
 
-onClick={
-()=>setShowAlertsDropdown(
+onClick={()=>
+setShowAlertsDropdown(
 !showAlertsDropdown
 )
 }
@@ -476,7 +404,7 @@ border-slate-800
 
 
 {
-degradedAssets.length>0 &&
+alertAssets.length>0 &&
 
 <span
 className="
@@ -494,7 +422,7 @@ justify-center
 "
 >
 
-{degradedAssets.length}
+{alertAssets.length}
 
 </span>
 
@@ -502,6 +430,8 @@ justify-center
 
 
 </button>
+
+
 
 
 
@@ -514,28 +444,27 @@ className="
 absolute
 right-0
 mt-2
-w-80
+w-72
 bg-[#070e1e]
 border
 border-slate-800
 rounded
 p-3
-z-50
 "
 >
 
 
 {
-degradedAssets.length===0
+alertAssets.length===0
 
 ?
 
 <div
 className="
-text-center
 text-xs
-font-mono
 text-slate-400
+text-center
+font-mono
 "
 >
 
@@ -546,22 +475,22 @@ text-emerald-400
 "
 />
 
-All equipment nominal
+All assets operational
 
 </div>
 
 
 :
 
-degradedAssets.map(
+alertAssets.map(
 asset=>(
 
 <div
 key={asset.id}
 className="
-py-2
 border-b
 border-slate-800
+py-2
 "
 >
 
@@ -575,11 +504,7 @@ font-mono
 >
 
 <AlertTriangle
-className="
-inline
-w-3
-h-3
-"
+className="inline w-3 h-3"
 />
 
 {asset.name}
@@ -589,13 +514,13 @@ h-3
 
 <div
 className="
-text-[11px]
-text-slate-400
+text-[10px]
+text-slate-500
 "
 >
 
-Health:
-{asset.health_score}%
+Status:
+{asset.status}
 
 </div>
 
@@ -630,8 +555,8 @@ Health:
 
 <button
 
-onClick={
-()=>setShowUserMenu(
+onClick={()=>
+setShowUserMenu(
 !showUserMenu
 )
 }
@@ -714,8 +639,7 @@ bg-[#070e1e]
 border
 border-slate-800
 rounded
-p-2
-z-50
+p-3
 "
 >
 
@@ -727,6 +651,7 @@ border-slate-800
 pb-2
 "
 >
+
 
 <div className="text-white font-bold">
 {user?.name}
@@ -760,11 +685,14 @@ py-2
 "
 >
 
-<ShieldCheck className="w-3 h-3"/>
+<ShieldCheck
+className="w-3 h-3"
+/>
 
 Security
 
 </Link>
+
 
 
 
@@ -784,7 +712,9 @@ py-2
 
 >
 
-<LogOut className="w-3 h-3"/>
+<LogOut
+className="w-3 h-3"
+/>
 
 Logout
 
@@ -796,45 +726,13 @@ Logout
 }
 
 
-
 </div>
-
 
 
 </div>
 
 
 </header>
-
-
-
-
-
-
-<CreateAssetModal
-
-isOpen={isModalOpen}
-
-onClose={
-()=>setIsModalOpen(false)
-}
-
-onSuccess={
-()=>router.refresh()
-}
-
-organizations={
-organizations
-}
-
-sites={
-tenantSites
-}
-
-/>
-
-
-</>
 
 );
 

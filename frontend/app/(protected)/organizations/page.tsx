@@ -3,7 +3,14 @@
 import React, { useState, useMemo } from 'react';
 import { AppShell } from '@/components/layout/AppShell';
 import { useOrganizations } from '@/hooks/useOrganizations';
-import { Building2, Plus, Globe, Layers, Search, Filter, ShieldCheck, X } from 'lucide-react';
+import { 
+  Building2,
+  Plus,
+  Globe,
+  Search,
+  Filter,
+  X
+} from 'lucide-react';
 import { EmptyState } from '@/components/common/EmptyState';
 import { LoadingState } from '@/components/common/LoadingState';
 import { ErrorState } from '@/components/common/ErrorState';
@@ -37,19 +44,55 @@ export default function OrganizationsPage() {
   }, [organizations, searchTerm, selectedIndustry]);
 
   const handleCreateOrg = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setCreating(true);
-    setFormError(null);
-    try {
-      await createOrganization({ name, industry, country });
-      setName('');
-      setIsModalOpen(false);
-    } catch (err: any) {
-      setFormError(err.message || 'Failed to create organization tenant');
-    } finally {
-      setCreating(false);
-    }
-  };
+
+  e.preventDefault();
+
+  setCreating(true);
+
+  setFormError(null);
+
+
+  try {
+
+    await createOrganization({
+      name,
+      industry,
+      country
+    });
+
+
+    await refetch();
+
+
+    setName('');
+
+    setIndustry(
+      'Renewable Energy & Storage'
+    );
+
+    setCountry(
+      'Kenya'
+    );
+
+
+    setIsModalOpen(false);
+
+
+  } catch(err:any){
+
+    setFormError(
+      err.message ||
+      'Failed to create organization tenant'
+    );
+
+
+  } finally {
+
+    setCreating(false);
+
+  }
+
+};
 
   return (
     <AppShell>
@@ -62,7 +105,7 @@ export default function OrganizationsPage() {
                 MULTI-TENANT ORGANIZATIONS
               </h1>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800 font-bold uppercase">
-                {organizations.length} Active Tenants
+                {organizations.length} Registered Tenants
               </span>
             </div>
             <p className="text-xs text-slate-400 font-mono mt-1">

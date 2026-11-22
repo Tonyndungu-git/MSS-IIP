@@ -4,6 +4,8 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 
 from app.models.asset import Asset
+from app.models.site import Site
+from app.models.organization import Organization
 from app.models.telemetry_event import TelemetryEvent
 
 from app.schemas.asset import AssetCreate, AssetResponse
@@ -30,6 +32,46 @@ def create_asset(
     organization_id = Depends(current_organization)
 ):
 
+
+    # ---------------------------------------------
+    # Validate site exists
+    # ---------------------------------------------
+
+    site = (
+        db.query(Site)
+        .filter(
+            Site.id == asset.site_id
+        )
+        .first()
+    )
+
+
+    if not site:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Site does not exist"
+        )
+
+
+
+    # ---------------------------------------------
+    # Validate site belongs to tenant
+    # ---------------------------------------------
+
+    if site.organization_id != organization_id:
+
+        raise HTTPException(
+            status_code=403,
+            detail="Site does not belong to your organization"
+        )
+
+
+
+    # ---------------------------------------------
+    # Create asset
+    # ---------------------------------------------
+
     db_asset = Asset(
 
         name=asset.name,
@@ -55,6 +97,7 @@ def create_asset(
     )
 
 
+
     db.add(db_asset)
 
     db.commit()
@@ -62,7 +105,9 @@ def create_asset(
     db.refresh(db_asset)
 
 
+
     return db_asset
+
 
 
 
@@ -95,11 +140,13 @@ def get_assets(
     )
 
 
+
     result = []
 
 
 
     for asset in assets:
+
 
 
         telemetry_rows = (
@@ -155,7 +202,7 @@ def get_assets(
             "telemetry": telemetry,
 
 
-            # Temporary until intelligence engine exists
+            # Temporary intelligence placeholder
             "health_score": 95
 
         })
@@ -163,6 +210,7 @@ def get_assets(
 
 
     return result
+
 
 
 
@@ -213,6 +261,7 @@ def get_asset(
             detail="Asset not found"
 
         )
+
 
 
 
