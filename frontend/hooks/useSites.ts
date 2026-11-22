@@ -84,6 +84,8 @@ export function useSites() {
 
     loadSites,
 
+    refetch: loadSites,
+
     createSite
 
   };
