@@ -440,25 +440,23 @@ export default function AssetsPage() {
 
 
               <button
-
-                
-                onClick={async()=>{
-
+                onClick={async () => {
                   await loadSites();
 
+                  // Don't allow asset creation if there are no sites
+                  if (sites.length === 0) {
+                    alert(
+                      "No sites found.\n\nPlease create a Site before registering an Asset.\n\nGo to the Sites page and create your first site."
+                    );
+                    return;
+                  }
+
                   setIsModalOpen(true);
-
                 }}
-
-
                 className="px-3 py-2 rounded bg-cyan-500 text-black font-bold flex items-center gap-2"
-
               >
-
-                <Plus size={16}/>
-
+                <Plus size={16} />
                 Register Asset
-
               </button>
 
 
